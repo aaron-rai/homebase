@@ -1,0 +1,31 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build output
+.next
+out
+dist
+build
+
+# Prisma
+prisma/migrations
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Logs
+*.log
+
+# Other
+.git
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

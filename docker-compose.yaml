@@ -62,8 +62,8 @@ volumes:
   ollama_data:
 
 networks:
-    homebridge-network:
-      driver: bridge
-    proxy:
-      external: true
-      name: proxy
+  homebridge-network:
+    driver: bridge
+  proxy:
+    external: true
+    name: proxy
