@@ -22,14 +22,17 @@ export async function POST(request: Request) {
 			},
 		});
 		return NextResponse.json(
-			{ user: { id: user.id, name: user.name, email: user.email } },
+			{
+				id: user.id,
+				email: user.email,
+				name: user.name,
+			},
 			{ status: 201 }
 		);
 	} catch (error: unknown) {
 		if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
 			return NextResponse.json({ error: "User already exists" }, { status: 409 });
 		}
-		console.error("Registration error:", error);
 		return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
 	}
 }

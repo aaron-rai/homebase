@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -16,31 +15,27 @@ export default function LoginPage() {
 	const [showPassword, setShowPassword] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
-	const router = useRouter();
 
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setError(null);
+		setIsLoading(true);
 
 		try {
-			setIsLoading(true);
 			const result = await signIn("credentials", {
-				redirect: false,
 				email,
 				password,
+				redirect: false,
 			});
+
 			if (result?.error) {
 				setError(result.error);
-			} else {
-				router.push("/"); //TODO: Redirect to intended page after login
+				setIsLoading(false);
+			} else if (result?.ok) {
+				window.location.href = "/onboarding";
 			}
 		} catch (err) {
-			if (err && typeof err === "object" && "message" in err) {
-				setError((err as { message: string }).message);
-			} else {
-				setError("An unexpected error occurred. Please try again.");
-			}
-		} finally {
+			setError("An unexpected error occurred during sign in");
 			setIsLoading(false);
 		}
 	};
