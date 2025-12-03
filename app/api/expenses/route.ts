@@ -1,0 +1,82 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
+
+export async function GET(request: Request) {
+	const session = await getServerSession(authOptions);
+	if (!session?.user?.id) {
+		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+	}
+
+	try {
+		const { searchParams } = new URL(request.url);
+		const householdId = searchParams.get("householdId");
+		const startDate = searchParams.get("startDate");
+		const endDate = searchParams.get("endDate");
+
+		if (!householdId) {
+			return NextResponse.json({ error: "householdId is required" }, { status: 400 });
+		}
+
+		const membership = await prisma.householdMember.findFirst({
+			where: {
+				householdId: householdId,
+				userId: session.user.id,
+			},
+		});
+
+		if (!membership) {
+			return NextResponse.json({ error: "Not a member of this household" }, { status: 403 });
+		}
+
+		const expenses = await prisma.expenseHousehold.findMany({
+			where: {
+				householdId: householdId,
+				...(startDate &&
+					endDate && {
+						expense: {
+							date: {
+								gte: new Date(startDate),
+								lte: new Date(endDate),
+							},
+						},
+					}),
+			},
+			include: {
+				expense: {
+					include: {
+						category: true,
+						user: {
+							select: {
+								id: true,
+								name: true,
+								email: true,
+							},
+						},
+					},
+				},
+			},
+			orderBy: {
+				expense: {
+					date: "desc",
+				},
+			},
+		});
+
+		const formattedExpenses = expenses.map((expenseHousehold) => ({
+			id: expenseHousehold.expense.id,
+			amount: expenseHousehold.expense.amount,
+			date: expenseHousehold.expense.date,
+			description: expenseHousehold.expense.description,
+			category: expenseHousehold.expense.category.name,
+			categoryColor: expenseHousehold.expense.category.color,
+			user: expenseHousehold.expense.user,
+		}));
+
+		return NextResponse.json({ expenses: formattedExpenses }, { status: 200 });
+	} catch (error) {
+		console.error("Error fetching expenses:", error);
+		return NextResponse.json({ error: "Failed to fetch expenses" }, { status: 500 });
+	}
+}
