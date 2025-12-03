@@ -141,6 +141,7 @@ export default function OnboardingPage() {
 
 			const data = await response.json();
 			if (!response.ok) {
+				toast.warning("Failed to delete household");
 				throw new Error(data.error || "Failed to delete household");
 			}
 
@@ -158,10 +159,13 @@ export default function OnboardingPage() {
 
 	// Fetch households once authenticated
 	useEffect(() => {
+		if (status === "loading") return;
 		if (status === "authenticated") {
 			fetchHouseholds();
+		} else {
+			router.push("/login");
 		}
-	}, [status]);
+	}, [status, router]);
 
 	if (status === "loading") {
 		return (

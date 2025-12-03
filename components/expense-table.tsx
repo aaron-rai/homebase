@@ -9,6 +9,11 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
+interface User {
+	id: string;
+	name: string;
+	email: string;
+}
 interface Expense {
 	id: string;
 	category: string;
@@ -16,22 +21,15 @@ interface Expense {
 	amount: number;
 	date: string;
 	description: string;
-	user: {
-		id: string;
-		name: string;
-		email: string;
-	};
-	reciept?: string | null;
+	user: User;
+	receipt?: string | null;
 }
 
 interface ExpenseTableProps {
 	expenses: Expense[];
 }
 
-export default function ExpenseTable({
-	expenses,
-	user,
-}: ExpenseTableProps & { user: { id: string; name: string; email: string } }) {
+export default function ExpenseTable({ expenses }: ExpenseTableProps) {
 	if (expenses.length === 0) {
 		return (
 			<div className="text-muted-foreground py-6 text-center text-xs sm:py-8">
@@ -80,9 +78,7 @@ export default function ExpenseTable({
 										})
 										.replace(",", "")}
 								</TableCell>
-								<TableCell
-									className={`text-center text-xs sm:text-sm ${expense.user.name === user.name ? "text-primary" : ""}`}
-								>
+								<TableCell className="text-center text-xs sm:text-sm">
 									{expense.user.name}
 								</TableCell>
 							</TableRow>

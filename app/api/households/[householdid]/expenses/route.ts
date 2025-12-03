@@ -3,25 +3,29 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET(request: Request) {
+export async function GET(
+	request: Request,
+	{ params }: { params: Promise<{ householdid: string }> }
+) {
 	const session = await getServerSession(authOptions);
 	if (!session?.user?.id) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
+	const { householdid } = await params;
+
 	try {
 		const { searchParams } = new URL(request.url);
-		const householdId = searchParams.get("householdId");
 		const startDate = searchParams.get("startDate");
 		const endDate = searchParams.get("endDate");
 
-		if (!householdId) {
+		if (!householdid) {
 			return NextResponse.json({ error: "householdId is required" }, { status: 400 });
 		}
 
 		const membership = await prisma.householdMember.findFirst({
 			where: {
-				householdId: householdId,
+				householdId: householdid,
 				userId: session.user.id,
 			},
 		});
@@ -32,7 +36,7 @@ export async function GET(request: Request) {
 
 		const expenses = await prisma.expenseHousehold.findMany({
 			where: {
-				householdId: householdId,
+				householdId: householdid,
 				...(startDate &&
 					endDate && {
 						expense: {
