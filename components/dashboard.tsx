@@ -2,6 +2,8 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import ChartSelector from "@/components/chart-selector";
+import ChartVariants from "@/components/chart-variants";
 import ExpenseTable from "@/components/expense-table";
 
 interface User {
@@ -40,7 +42,7 @@ export default function Dashboard({
 	users,
 	dateRange,
 }: DashboardProps) {
-	const [chartType, setChartType] = useState<"bar" | "pie" | "donut" | "radial">("bar");
+	const [chartType, setChartType] = useState<"bar" | "line" | "radar" | "radial">("bar");
 
 	const filteredByDateExpenses = useMemo(() => {
 		return expenses.filter((e) => e.date >= dateRange.start && e.date <= dateRange.end);
@@ -91,6 +93,28 @@ export default function Dashboard({
 			</div>
 
 			{/* Chart card */}
+			<Card className="from-primary/5 to-accent/5 border-0 bg-linear-to-br shadow-lg">
+				<CardHeader className="pb-3 sm:pb-4">
+					<div className="space-y-3 sm:space-y-4">
+						<div className="flex items-start justify-between gap-2 sm:items-center">
+							<div className="min-w-0 flex-1">
+								<CardTitle className="text-lg sm:text-xl">Spending Distribution</CardTitle>
+								<CardDescription className="text-xs sm:text-sm">
+									Category breakdown of expenses
+								</CardDescription>
+							</div>
+							{/* Add a trending up or down icon based on last month? */}
+						</div>
+						<div>
+							<p className="text-muted-foreground mb-2 text-xs font-medium">Chart Type</p>
+							<ChartSelector selectedChart={chartType} onSelectChart={setChartType} />
+						</div>
+					</div>
+				</CardHeader>
+				<CardContent>
+					<ChartVariants expenses={filteredByDateExpenses} chartType={chartType} />
+				</CardContent>
+			</Card>
 			{/* Implement Chart */}
 
 			{/* Stats cards */}

@@ -124,6 +124,7 @@ export default function Home() {
 							variant="outline"
 							onClick={() => console.log("Open support chat")}
 							className="h-9 w-9 cursor-pointer sm:h-10"
+							disabled={true}
 						>
 							<MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
 						</Button>
