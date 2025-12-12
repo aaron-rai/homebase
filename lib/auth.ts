@@ -34,6 +34,7 @@ export const authOptions: NextAuthOptions = {
 					id: user.id,
 					email: user.email,
 					name: user.name,
+					joinedAt: user.createdAt,
 				};
 			},
 		}),
@@ -46,10 +47,16 @@ export const authOptions: NextAuthOptions = {
 		signIn: "/login",
 	},
 	callbacks: {
-		async jwt({ token, user }) {
+		async jwt({ token, user, session, trigger }) {
 			// On sign in, add the user ID to the token
+			if (trigger === "update" && session) {
+				token.name = session.name;
+			}
 			if (user) {
 				token.sub = user.id;
+				token.email = user.email;
+				token.name = user.name;
+				token.joinedAt = user.joinedAt;
 			}
 			return token;
 		},
@@ -57,6 +64,9 @@ export const authOptions: NextAuthOptions = {
 			// Add the user ID to the session from the token
 			if (session.user) {
 				session.user.id = token.sub!;
+				session.user.email = token.email as string;
+				session.user.name = token.name as string;
+				session.user.joinedAt = token.joinedAt as Date;
 			}
 			return session;
 		},

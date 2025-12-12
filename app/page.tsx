@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast, Toaster } from "sonner";
-import { Plus, RotateCw, MessageCircle, LogOut } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
+import { House, Plus, RotateCw, MessageCircle } from "lucide-react";
 import Dashboard from "@/components/dashboard";
 import DateRangePicker from "@/components/data-range-picker";
+import UserSettingsSidebar from "@/components/user-settings-sidebar";
 
 interface Expense {
 	id: string;
@@ -30,13 +32,15 @@ interface User {
 }
 
 export default function Home() {
-	const { status } = useSession();
+	const { data: session, status } = useSession();
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const householdid = searchParams.get("household") || "";
 	const [expenses, setExpenses] = useState<Expense[]>([]);
 	const [users, setUsers] = useState<User[]>([]);
 	const [selectedUser, setSelectedUser] = useState<string | null>(null);
+	const [isSettingsSidebarOpen, setIsSettingsSidebarOpen] = useState(false);
+	const user = session?.user;
 
 	const getInitialDateRange = () => {
 		const now = new Date();
@@ -110,6 +114,25 @@ export default function Home() {
 			{/* Header */}
 			<div className="bg-card border-border sticky top-0 z-50 border-b shadow-sm">
 				<div className="flex items-center justify-between gap-2 p-3 sm:p-4">
+					<Button
+						size="icon"
+						variant="ghost"
+						onClick={() => {
+							setIsSettingsSidebarOpen(true);
+						}}
+						className="hover:bg-accent/10 h-9 w-9 shrink-0 rounded-full sm:h-10 sm:w-10"
+					>
+						<Avatar className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full sm:h-9 sm:w-9">
+							<AvatarImage />
+							<AvatarFallback className="from-primary to-accent flex h-full w-full items-center justify-center bg-linear-to-br text-sm font-semibold text-white sm:text-base">
+								{(user?.name || "User")
+									.split(" ")
+									.map((n) => n[0])
+									.join("")
+									.toUpperCase()}
+							</AvatarFallback>
+						</Avatar>
+					</Button>
 					<div className="min-w-0 flex-1">
 						<h1 className="text-foreground truncate text-lg font-bold sm:text-2xl">
 							HomeBase Dashboard
@@ -119,6 +142,14 @@ export default function Home() {
 						</p>
 					</div>
 					<div className="flex shrink-0 gap-1 sm:gap-2">
+						<Button
+							size="icon"
+							variant="outline"
+							onClick={() => router.back()}
+							className="hover:bg-accent/90 h-9 w-9 cursor-pointer sm:h-10"
+						>
+							<House className="h-4 w-4 sm:h-5 sm:w-5" />
+						</Button>
 						<Button
 							size="icon"
 							variant="outline"
@@ -143,17 +174,6 @@ export default function Home() {
 							className="hover:bg-accent/90 bg-primary h-9 w-9 cursor-pointer sm:h-10"
 						>
 							<Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-						</Button>
-						<Button
-							size="icon"
-							variant="outline"
-							onClick={() => {
-								signOut();
-								router.push("/login");
-							}}
-							className="text-destructive hover:bg-destructive/80 h-9 w-9 cursor-pointer bg-transparent sm:h-10"
-						>
-							<LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
 						</Button>
 					</div>
 				</div>
@@ -182,6 +202,10 @@ export default function Home() {
 					dateRange={dateRange}
 				/>
 			</main>
+			<UserSettingsSidebar
+				isOpen={isSettingsSidebarOpen}
+				onClose={() => setIsSettingsSidebarOpen(false)}
+			/>
 		</div>
 	);
 }
