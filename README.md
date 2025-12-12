@@ -73,12 +73,14 @@ app/
 │   ├── auth/        # NextAuth
 │   ├── households/  # Household management
 │   └── register/    # User registration
+│	└── user/    	 # User profile/theme settings
 ├── login/           # Login page
 ├── register/        # Registration page
 ├── onboarding/      # Household setup
 └── page.tsx         # Home
 
 components/ui/       # shadcn/ui components
+components/*.tsx     # Shared React components
 lib/                 # Auth & utilities
 prisma/              # Database schema & migrations
 ```

@@ -16,6 +16,7 @@ async function main() {
 			email: "aaron@example.com",
 			name: "Aaron Rai",
 			passwordHash: aaronHash,
+			theme: "dark",
 		},
 	});
 	const pronisha = await prisma.user.upsert({
@@ -25,6 +26,7 @@ async function main() {
 			email: "pronisha@example.com",
 			name: "Pronisha Panta",
 			passwordHash: pronishaHash,
+			theme: "light",
 		},
 	});
 	console.log("Users seeded.");

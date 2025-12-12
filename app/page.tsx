@@ -4,9 +4,10 @@ import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
 import { House, Plus, RotateCw, MessageCircle } from "lucide-react";
+import { Toaster } from "@/components/ui/sonner";
 import Dashboard from "@/components/dashboard";
 import DateRangePicker from "@/components/data-range-picker";
 import UserSettingsSidebar from "@/components/user-settings-sidebar";
@@ -52,7 +53,6 @@ export default function Home() {
 		};
 	};
 	const [dateRange, setDateRange] = useState(getInitialDateRange());
-	console.log("Current date range:", dateRange);
 	const fetchExpenses = useCallback(async () => {
 		try {
 			const response = await fetch(
