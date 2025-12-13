@@ -17,13 +17,31 @@ export async function POST(request: Request) {
 			return NextResponse.json({ error: "Household ID is required" }, { status: 400 });
 		}
 
-		await prisma.household.deleteMany({
+		// Check if the user is a member of the household
+		const membership = await prisma.householdMember.findFirst({
+			where: {
+				householdId: id,
+				userId: session.user.id,
+			},
+		});
+
+		if (!membership) {
+			return NextResponse.json({ error: "Not a member of this household" }, { status: 403 });
+		}
+
+		// Only allow deletion if the user is an admin
+		const isAdmin = membership.role === "admin";
+		if (!isAdmin) {
+			return NextResponse.json({ error: "Only admins can delete the household" }, { status: 403 });
+		}
+
+		await prisma.household.delete({
 			where: {
 				id,
 			},
 		});
 
-		return NextResponse.json({ message: "Households deleted successfully" });
+		return NextResponse.json({ message: "Household deleted successfully" });
 	} catch (error: unknown) {
 		console.error("Household deletion error:", error);
 		return NextResponse.json({ error: "Something went wrong" }, { status: 500 });

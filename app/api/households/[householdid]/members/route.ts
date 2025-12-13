@@ -3,7 +3,10 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET(request: Request, { params }: { params: Promise<{ householdid: string }> }) {
+export async function GET(
+	request: Request,
+	{ params }: { params: Promise<{ householdid: string }> }
+) {
 	const session = await getServerSession(authOptions);
 	if (!session?.user?.id) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -12,6 +15,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ hous
 	const { householdid } = await params;
 
 	try {
+		const membership = await prisma.householdMember.findFirst({
+			where: {
+				householdId: householdid,
+				userId: session.user.id,
+			},
+		});
+
+		if (!membership) {
+			return NextResponse.json({ error: "Not a member of this household" }, { status: 403 });
+		}
+
 		const members = await prisma.householdMember.findMany({
 			where: {
 				householdId: householdid,

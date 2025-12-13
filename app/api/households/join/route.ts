@@ -28,6 +28,29 @@ export async function POST(request: Request) {
 		if (!household) {
 			return NextResponse.json({ error: "Invalid invite code" }, { status: 404 });
 		}
+
+		// Check if user is already a member of that household
+		const existingMember = await prisma.householdMember.findUnique({
+			where: {
+				userId_householdId: {
+					householdId: household.id,
+					userId: session.user.id,
+				},
+			},
+		});
+		if (existingMember) {
+			return NextResponse.json(
+				{
+					household: {
+						id: household.id,
+						name: household.name,
+						membersCount: household._count.members,
+					},
+				},
+				{ status: 200 }
+			);
+		}
+
 		// Add user to household members
 		await prisma.householdMember.create({
 			data: {
