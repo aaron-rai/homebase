@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
 import { House, Plus, RotateCw, MessageCircle } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
+import AddExpenseModal from "@/components/add-expenense-modal";
 import Dashboard from "@/components/dashboard";
 import DateRangePicker from "@/components/data-range-picker";
 import UserSettingsSidebar from "@/components/user-settings-sidebar";
@@ -41,7 +42,12 @@ export default function HomePage() {
 	const [users, setUsers] = useState<User[]>([]);
 	const [selectedUser, setSelectedUser] = useState<string | null>(null);
 	const [isSettingsSidebarOpen, setIsSettingsSidebarOpen] = useState(false);
+	const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
 	const user = session?.user;
+	const [householdName, setHouseholdName] = useState<string>("");
+	const [categories, setCategories] = useState<
+		{ name: string; id: string; color: string; icon: string }[]
+	>([]);
 
 	const getInitialDateRange = () => {
 		const now = new Date();
@@ -63,6 +69,7 @@ export default function HomePage() {
 			}
 			const data = await response.json();
 			console.log("Fetched expenses:", data.expenses);
+			setHouseholdName(data.household.name);
 			return data.expenses;
 		} catch (error) {
 			console.error(error);
@@ -87,14 +94,47 @@ export default function HomePage() {
 		}
 	}, [householdid]);
 
+	const fetchCategories = useCallback(async () => {
+		try {
+			const response = await fetch("/api/categories");
+			const data = await response.json();
+			setCategories(data.categories);
+			return data.categories;
+		} catch (error) {
+			console.error("Error fetching categories:", error);
+			return [];
+		}
+	}, []);
+
 	const filteredExpenses = selectedUser
 		? expenses.filter((e) => e.user.id === selectedUser)
 		: expenses;
 
+	const handleAddExpense = async (expense: {
+		amount: number;
+		date: string;
+		description: string;
+		categoryId: string;
+	}) => {
+		const response = await fetch("/api/households/" + householdid + "/expenses", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(expense),
+		});
+		if (!response.ok) {
+			toast.error("Failed to add expense");
+			return;
+		}
+		await fetchExpenses().then(setExpenses);
+		setIsExpenseModalOpen(false);
+		toast.success("Expense added successfully");
+	};
+
 	useEffect(() => {
 		fetchExpenses().then(setExpenses);
 		fetchUsers().then(setUsers);
-	}, [fetchExpenses, fetchUsers]);
+		fetchCategories().then(setCategories);
+	}, [fetchExpenses, fetchUsers, fetchCategories]);
 
 	return (
 		<div className="bg-background min-h-screen">
@@ -158,8 +198,8 @@ export default function HomePage() {
 						<Button
 							size="icon"
 							variant="outline"
-							onClick={() => console.log("Add new expense")}
-							className="hover:bg-accent/90 bg-primary h-9 w-9 cursor-pointer sm:h-10"
+							onClick={() => setIsExpenseModalOpen(true)}
+							className="hover:bg-accent/90 bg-primary dark:bg-primary-dark h-9 w-9 cursor-pointer sm:h-10"
 						>
 							<Plus className="h-4 w-4 sm:h-5 sm:w-5" />
 						</Button>
@@ -169,10 +209,10 @@ export default function HomePage() {
 			{/* Main Content */}
 			<main className="pb-8">
 				<div className="bg-card border-border sticky top-14 z-40 border-b p-3 shadow-sm sm:top-16 sm:p-4">
-					<div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center sm:gap-4">
+					<div className="flex flex-row items-start justify-between gap-3 sm:flex-row sm:items-center sm:gap-4">
 						<div>
-							<p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
-								Date Range
+							<p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase sm:text-sm">
+								Viewing: <span className="text-primary font-bold">{householdName}</span>
 							</p>
 						</div>
 						<DateRangePicker
@@ -193,6 +233,14 @@ export default function HomePage() {
 			<UserSettingsSidebar
 				isOpen={isSettingsSidebarOpen}
 				onClose={() => setIsSettingsSidebarOpen(false)}
+			/>
+			<AddExpenseModal
+				key={isExpenseModalOpen ? "open" : "closed"}
+				isOpen={isExpenseModalOpen}
+				onClose={() => setIsExpenseModalOpen(false)}
+				onAdd={handleAddExpense}
+				users={users.map((u) => u.name)}
+				categories={categories}
 			/>
 		</div>
 	);
