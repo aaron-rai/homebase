@@ -79,7 +79,7 @@ export default function OnboardingClient() {
 		setError("");
 
 		try {
-			const response = await fetch("/api/households/create", {
+			const response = await fetch("/api/households", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ name: householdName }),
@@ -138,10 +138,9 @@ export default function OnboardingClient() {
 
 	const handleDeleteHousehold = async (householdId: string) => {
 		try {
-			const response = await fetch("/api/households/delete", {
-				method: "POST",
+			const response = await fetch(`/api/households/${householdId}`, {
+				method: "DELETE",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ id: householdId }),
 			});
 
 			const data = await response.json();

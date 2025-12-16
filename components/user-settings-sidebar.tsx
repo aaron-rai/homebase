@@ -32,7 +32,7 @@ export default function UserSettingsSidebar({ isOpen, onClose }: UserSettingsSid
 		setIsSaving(true);
 		try {
 			const response = await fetch("/api/user/profile", {
-				method: "PUT",
+				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ name: name.trim() }),
 			});

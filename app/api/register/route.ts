@@ -3,11 +3,8 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
-	console.log("Received registration request");
-
 	try {
 		const body = await request.json();
-		console.log("Request body:", body);
 		const { name, email, password } = body;
 
 		if (!email || !password) {

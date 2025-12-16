@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET(
-	request: Request,
+	_request: Request,
 	{ params }: { params: Promise<{ householdid: string }> }
 ) {
 	const session = await getServerSession(authOptions);
@@ -41,7 +41,7 @@ export async function GET(
 			},
 		});
 
-		return NextResponse.json({ members: members.map((m) => m.user) });
+		return NextResponse.json({ members: members.map((m) => ({ ...m.user, role: m.role })) });
 	} catch (error) {
 		console.error("Error fetching household members:", error);
 		return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

@@ -3,15 +3,17 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function POST(request: Request) {
+export async function DELETE(
+	_request: Request,
+	{ params }: { params: Promise<{ householdid: string }> }
+) {
 	const session = await getServerSession(authOptions);
 	if (!session?.user?.id) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
 	try {
-		const body = await request.json();
-		const { id } = body;
+		const { householdid: id } = await params;
 
 		if (!id) {
 			return NextResponse.json({ error: "Household ID is required" }, { status: 400 });
