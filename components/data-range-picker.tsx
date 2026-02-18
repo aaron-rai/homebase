@@ -13,10 +13,16 @@ export default function DateRangePicker({
 	endDate,
 	onDateChange,
 }: DateRangePickerProps) {
-	const formatDate = (date: string) => {
-		// Parse as local date by appending time component
-		const d = new Date(date + "T00:00:00");
-		return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+	const formatDateRange = () => {
+		const start = new Date(startDate + "T00:00:00");
+		const end = new Date(endDate + "T00:00:00");
+		const startStr = start.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+		const endStr = end.toLocaleDateString("en-US", {
+			month: "short",
+			day: "numeric",
+			year: "numeric",
+		});
+		return `${startStr} - ${endStr}`;
 	};
 
 	const toLocalDateString = (date: Date) => {
@@ -28,17 +34,17 @@ export default function DateRangePicker({
 
 	const handlePrevMonth = () => {
 		const start = new Date(startDate + "T00:00:00");
+		start.setDate(1);
 		start.setMonth(start.getMonth() - 1);
-		const end = new Date(endDate + "T00:00:00");
-		end.setMonth(end.getMonth() - 1);
+		const end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
 		onDateChange(toLocalDateString(start), toLocalDateString(end));
 	};
 
 	const handleNextMonth = () => {
 		const start = new Date(startDate + "T00:00:00");
+		start.setDate(1);
 		start.setMonth(start.getMonth() + 1);
-		const end = new Date(endDate + "T00:00:00");
-		end.setMonth(end.getMonth() + 1);
+		const end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
 		onDateChange(toLocalDateString(start), toLocalDateString(end));
 	};
 
@@ -59,7 +65,7 @@ export default function DateRangePicker({
 	};
 
 	return (
-		<div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:gap-3">
+		<div className="flex items-center gap-1 sm:gap-2">
 			<Button
 				variant="outline"
 				size="sm"
@@ -77,7 +83,7 @@ export default function DateRangePicker({
 				<ChevronLeft className="h-4 w-4" />
 			</Button>
 			<div className="bg-secondary/50 border-border rounded-md border px-3 py-2 text-xs font-medium whitespace-nowrap sm:text-sm">
-				{formatDate(startDate)} - {formatDate(endDate)}
+				{formatDateRange()}
 			</div>
 			<Button
 				variant="outline"
