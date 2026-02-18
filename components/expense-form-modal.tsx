@@ -19,11 +19,11 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import { Camera, Loader2 } from "lucide-react";
 import { DateTimePicker } from "./date-time-picker";
 
-interface AddExpenseModalProps {
+interface ExpenseFormModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	onAdd: (expense: {
@@ -34,22 +34,35 @@ interface AddExpenseModalProps {
 	}) => void;
 	users: string[];
 	categories?: { name: string; id: string; color: string; icon: string }[];
+	initialData?: {
+		id: string;
+		description: string;
+		amount: number;
+		date: string;
+		categoryId: string;
+	};
 }
 
-export default function AddExpenseModal({
+export default function ExpenseFormModal({
 	isOpen,
 	onClose,
 	onAdd,
 	users,
 	categories,
-}: AddExpenseModalProps) {
+	initialData,
+}: ExpenseFormModalProps) {
 	const defaultUser = users[0] || "";
 
 	const [formData, setFormData] = useState({
-		description: "",
-		amount: "",
-		date: new Date().toISOString().split("T")[0],
-		category: categories?.[0] || { name: "", id: "", color: "", icon: "" },
+		description: initialData?.description || "",
+		amount: initialData?.amount.toString() || "",
+		date: initialData?.date || new Date().toISOString().split("T")[0],
+		category: categories?.find((cat) => cat.id === initialData?.categoryId) || {
+			name: "",
+			id: "",
+			color: "",
+			icon: "",
+		},
 		user: defaultUser,
 	});
 	const [receipt, setReceipt] = useState<string | null>(null);
@@ -84,10 +97,9 @@ export default function AddExpenseModal({
 
 	return (
 		<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-			<Toaster position="top-right" />
 			<DialogContent className="max-wd-md w-full">
 				<DialogHeader>
-					<DialogTitle>Add New Expense</DialogTitle>
+					<DialogTitle>{initialData ? "Edit Expense" : "Add New Expense"}</DialogTitle>
 					<DialogDescription>Track a new expense with optional receipt </DialogDescription>
 				</DialogHeader>
 
@@ -237,7 +249,7 @@ export default function AddExpenseModal({
 							Cancel
 						</Button>
 						<Button type="submit" className="bg-primary hover:bg-primary/90 flex-1">
-							Add Expense
+							{initialData ? "Save Changes" : "Add Expense"}
 						</Button>
 					</div>
 				</form>

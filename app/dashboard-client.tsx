@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
 import { House, Plus, RotateCw, MessageCircle } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
-import AddExpenseModal from "@/components/add-expenense-modal";
+import ExpenseFormModal from "@/components/expense-form-modal";
 import Dashboard from "@/components/dashboard";
 import DateRangePicker from "@/components/data-range-picker";
 import UserSettingsSidebar from "@/components/user-settings-sidebar";
@@ -20,6 +20,7 @@ interface Expense {
 	description: string;
 	category: string;
 	categoryColor: string;
+	categoryId: string;
 	user: {
 		id: string;
 		name: string;
@@ -43,6 +44,7 @@ export default function HomePage() {
 	const [selectedUser, setSelectedUser] = useState<string | null>(null);
 	const [isSettingsSidebarOpen, setIsSettingsSidebarOpen] = useState(false);
 	const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+	const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 	const user = session?.user;
 	const [householdName, setHouseholdName] = useState<string>("");
 	const [categories, setCategories] = useState<
@@ -130,6 +132,58 @@ export default function HomePage() {
 		toast.success("Expense added successfully");
 	};
 
+	const handleEditExpense = (expense: Expense) => {
+		setEditingExpense(expense);
+	};
+
+	const handleUpdateExpense = async (updatedExpense: {
+		amount: number;
+		date: string;
+		description: string;
+		categoryId: string;
+	}) => {
+		const res = await fetch(`/api/expenses/${editingExpense?.id}`, {
+			method: "PATCH",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(updatedExpense),
+		});
+		if (res.ok) {
+			await fetchExpenses().then(setExpenses);
+			setEditingExpense(null);
+			toast.success("Expense updated successfully.");
+		} else {
+			const data = await res.json();
+			const message =
+				res.status === 403
+					? "You can only edit your own expenses."
+					: res.status === 404
+						? "Expense not found."
+						: res.status === 401
+							? "You must be logged in to edit expenses."
+							: data.error || "Failed to update expense. Please try again.";
+			toast.error(message);
+		}
+	};
+
+	const handleDeleteExpense = async (id: string) => {
+		const res = await fetch(`/api/expenses/${id}`, { method: "DELETE" });
+		if (res.ok) {
+			setExpenses((prev) => prev.filter((e) => e.id !== id));
+			toast.success("Expense deleted successfully.");
+		} else {
+			const data = await res.json();
+			const message =
+				res.status === 403
+					? "You can only delete your own expenses."
+					: res.status === 404
+						? "Expense not found."
+						: res.status === 401
+							? "You must be logged in to delete expenses."
+							: data.error || "Failed to delete expense. Please try again.";
+			toast.error(message);
+		}
+	};
+
 	useEffect(() => {
 		fetchExpenses().then(setExpenses);
 		fetchUsers().then(setUsers);
@@ -162,8 +216,8 @@ export default function HomePage() {
 						</Avatar>
 					</Button>
 					<div className="min-w-0 flex-1">
-						<h1 className="text-foreground truncate text-lg font-bold sm:text-2xl">
-							HomeBase Dashboard
+						<h1 className="text-foreground text-md truncate font-bold sm:text-2xl">
+							Expense Dashboard
 						</h1>
 						<p className="text-muted-foreground hidden text-xs sm:block sm:text-sm">
 							Smart Expense Manager
@@ -228,17 +282,28 @@ export default function HomePage() {
 					onSelectUser={setSelectedUser}
 					users={users}
 					dateRange={dateRange}
+					onDeleteExpense={handleDeleteExpense}
+					onEditExpense={handleEditExpense}
 				/>
 			</main>
 			<UserSettingsSidebar
 				isOpen={isSettingsSidebarOpen}
 				onClose={() => setIsSettingsSidebarOpen(false)}
 			/>
-			<AddExpenseModal
+			<ExpenseFormModal
 				key={isExpenseModalOpen ? "open" : "closed"}
 				isOpen={isExpenseModalOpen}
 				onClose={() => setIsExpenseModalOpen(false)}
 				onAdd={handleAddExpense}
+				users={users.map((u) => u.name)}
+				categories={categories}
+			/>
+			<ExpenseFormModal
+				key={editingExpense?.id ?? "edit"}
+				isOpen={!!editingExpense}
+				onClose={() => setEditingExpense(null)}
+				onAdd={handleUpdateExpense}
+				initialData={editingExpense ?? undefined}
 				users={users.map((u) => u.name)}
 				categories={categories}
 			/>

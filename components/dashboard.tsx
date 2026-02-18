@@ -16,6 +16,7 @@ interface Expense {
 	id: string;
 	category: string;
 	categoryColor: string;
+	categoryId: string;
 	amount: number;
 	date: string;
 	description: string;
@@ -33,6 +34,8 @@ interface DashboardProps {
 	onSelectUser: (userId: string | null) => void;
 	users: User[];
 	dateRange: { start: string; end: string };
+	onDeleteExpense: (id: string) => Promise<void>;
+	onEditExpense: (expense: Expense) => void;
 }
 
 export default function Dashboard({
@@ -41,6 +44,8 @@ export default function Dashboard({
 	onSelectUser,
 	users,
 	dateRange,
+	onDeleteExpense,
+	onEditExpense,
 }: DashboardProps) {
 	const [chartType, setChartType] = useState<"bar" | "line" | "radar" | "radial">("bar");
 
@@ -176,7 +181,11 @@ export default function Dashboard({
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="p-0 sm:p-6">
-						<ExpenseTable expenses={filteredByDateExpenses} />
+						<ExpenseTable
+							expenses={filteredByDateExpenses}
+							onDelete={onDeleteExpense}
+							onEdit={onEditExpense}
+						/>
 					</CardContent>
 				</Card>
 			</div>

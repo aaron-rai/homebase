@@ -82,6 +82,7 @@ export async function GET(
 			description: expenseHousehold.expense.description,
 			category: expenseHousehold.expense.category.name,
 			categoryColor: expenseHousehold.expense.category.color,
+			categoryId: expenseHousehold.expense.category.id,
 			user: expenseHousehold.expense.user,
 		}));
 
