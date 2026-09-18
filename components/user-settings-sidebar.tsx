@@ -1,11 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { LogOut, X, Upload, Sun, Moon, Monitor } from "lucide-react";
+import { LogOut, X, Upload, Sun, Moon, Monitor, Copy } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import packageJson from "@/package.json";
 import { toast } from "sonner";
@@ -22,6 +22,22 @@ export default function UserSettingsSidebar({ isOpen, onClose }: UserSettingsSid
 	const [isEditing, setIsEditing] = useState(false);
 	const [name, setName] = useState(user?.name || "");
 	const [isSaving, setIsSaving] = useState(false);
+	const [hasToken, setHasToken] = useState(false);
+	const [revealedToken, setRevealedToken] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (!isOpen) return;
+		fetch("/api/user/token")
+			.then((res) => res.json())
+			.then((data) => setHasToken(data.hasToken));
+	}, [isOpen]);
+
+	const handleGenerate = async () => {
+		const res = await fetch("/api/user/token", { method: "POST" });
+		const data = await res.json();
+		setRevealedToken(data.apiToken);
+		setHasToken(true);
+	};
 
 	const handleSaveName = async () => {
 		if (!name.trim()) {
@@ -212,6 +228,44 @@ export default function UserSettingsSidebar({ isOpen, onClose }: UserSettingsSid
 								Member Since: {new Date(user.joinedAt).toLocaleDateString()}
 							</p>
 							<p className="text-muted-foreground text-sm">Version {packageJson.version}</p>
+						</CardContent>
+					</Card>
+					{/* API Token Section */}
+					<Card>
+						<CardHeader>
+							<CardTitle>API Token</CardTitle>
+							<CardDescription>
+								Use this to submit expenses from Shortcuts or other tools
+							</CardDescription>
+						</CardHeader>
+						<CardContent className="space-y-2">
+							{revealedToken ? (
+								<div className="space-y-1">
+									<div className="bg-muted flex items-center justify-between gap-2 rounded-md p-2">
+										<span className="truncate font-mono text-sm">{revealedToken}</span>
+										<Button
+											size="icon"
+											variant="ghost"
+											onClick={() => {
+												navigator.clipboard.writeText(revealedToken);
+												toast.success("Copied to clipboard");
+											}}
+										>
+											<Copy className="h-4 w-4" />
+										</Button>
+									</div>
+									<p className="text-muted-foreground text-xs">
+										Copy this now — you won&apos;t be able to see it again.
+									</p>
+								</div>
+							) : (
+								<p className="text-muted-foreground text-sm">
+									{hasToken ? "Token is set (hidden)." : "No token generated yet."}
+								</p>
+							)}
+							<Button size="sm" variant="outline" onClick={handleGenerate}>
+								{hasToken ? "Regenerate Token" : "Generate Token"}
+							</Button>
 						</CardContent>
 					</Card>
 					{/* Close Button */}
