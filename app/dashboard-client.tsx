@@ -184,10 +184,22 @@ export default function HomePage() {
 		}
 	};
 
-	useEffect(() => {
+	const handleRefresh = async () => {
+		toast.info("Refreshing Expenses");
 		fetchExpenses().then(setExpenses);
 		fetchUsers().then(setUsers);
-		fetchCategories().then(setCategories);
+	};
+
+	useEffect(() => {
+		const refreshData = () => {
+			fetchExpenses().then(setExpenses);
+			fetchUsers().then(setUsers);
+			fetchCategories().then(setCategories);
+		};
+
+		refreshData(); // initial load — don't wait for the first tick
+		const interval = setInterval(refreshData, 15000);
+		return () => clearInterval(interval);
 	}, [fetchExpenses, fetchUsers, fetchCategories]);
 
 	return (
@@ -244,7 +256,7 @@ export default function HomePage() {
 						<Button
 							size="icon"
 							variant="outline"
-							onClick={() => console.log("Refresh data")}
+							onClick={() => handleRefresh()}
 							className="h-9 w-9 cursor-pointer sm:h-10"
 						>
 							<RotateCw className="h-4 w-4 sm:h-5 sm:w-5" />
